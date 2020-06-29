@@ -27,14 +27,14 @@ class TestMatchingQuerySequenceDetails(TestCase):
                                               {"default": [1, 0, 0]})[0]
 
         file_content = """complex.id	Gene	CDR3	V	J	Species	MHC A	MHC B	MHC class	Epitope	Epitope gene	Epitope species	Reference	Method	Meta	CDR3fix	Score
-        100a	TRA	AAA	TRAV1	TRAJ1	HomoSapiens	HLA-A*11:01	B2M	MHCI	AVFDRKSDAK	EBNA4	EBV	                
-        100a	TRA	CCF	TRAV1	TRAJ1	HomoSapiens	HLA-A*11:01	B2M	MHCI	AVFDRKSDAK	EBNA4	EBV	                
+        100a	TRA	CAAAF	TRAV1	TRAJ1	HomoSapiens	HLA-A*11:01	B2M	MHCI	AVFDRKSDAK	EBNA4	EBV	                
+        100a	TRA	CCCFF	TRAV1	TRAJ1	HomoSapiens	HLA-A*11:01	B2M	MHCI	AVFDRKSDAK	EBNA4	EBV	                
         """
 
         with open(path + "refs.tsv", "w") as file:
             file.writelines(file_content)
 
-        references = {"path": path + "refs.tsv", "format": "VDJdb"}
+        references = {"path": path + "refs.tsv", "format": "Generic", "params": {"column_mapping": {"CDR3": "amino_acid", "V": "v_gene", "J": "j_gene"}}}
 
         dataset = RepertoireDataset(repertoires=repertoires,
                                     params={"default": [0, 1]},

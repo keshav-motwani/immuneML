@@ -30,10 +30,10 @@ class MatchingQuerySequenceDetails(DataReport):
             ParameterValidator.assert_type_and_value(kwargs["max_edit_distance"], int, location, "max_edit_distance")
 
         if "reference_sequences" in kwargs:
-            ParameterValidator.assert_keys(list(kwargs["reference_sequences"].keys()), ["format", "path"], location, "reference_sequences")
+            ParameterValidator.assert_keys(list(kwargs["reference_sequences"].keys()), ["format", "path", "params"], location, "reference_sequences", exclusive=False)
 
             importer = ReflectionHandler.get_class_by_name("{}SequenceImport".format(kwargs["reference_sequences"]["format"]))
-            kwargs["reference_sequences"] = importer.import_items(kwargs["reference_sequences"]["path"]) \
+            kwargs["reference_sequences"] = importer.import_items(kwargs["reference_sequences"]["path"], **kwargs["reference_sequences"].get("params", {})) \
                 if kwargs["reference_sequences"] is not None else None
 
         return MatchingQuerySequenceDetails(**kwargs)
