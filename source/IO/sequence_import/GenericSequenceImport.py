@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 from source.data_model.receptor.receptor_sequence.ReceptorSequence import ReceptorSequence
 from source.data_model.receptor.receptor_sequence.SequenceFrameType import SequenceFrameType
@@ -9,23 +10,18 @@ from source.environment.Constants import Constants
 class GenericSequenceImport:
 
     @staticmethod
-    def import_items(path: str, params: dict):
-        return GenericSequenceImport._read_sequences(path, params)
+    def import_items(path: str, additional_columns=[], column_mapping: dict = None, separator: str = "\t", region_definition: str = "IMGT", ):
 
-    @staticmethod
-    def _read_sequences(filepath, params):
-
-        usecols = None if params["additional_columns"] == "*" else list(params["column_mapping"].values()) + params["additional_columns"]
-        separator = params.get("separator", "\t")
+        usecols = None if additional_columns == "*" else list(column_mapping.keys()) + additional_columns
 
         try:
-            df = pd.read_csv(filepath, sep=separator, iterator=False, usecols=usecols)
+            df = pd.read_csv(path, sep=separator, iterator=False, usecols=usecols)
         except:
-            df = pd.read_csv(filepath, sep=separator, iterator=False, usecols=usecols, encoding="latin1")
+            df = pd.read_csv(path, sep=separator, iterator=False, usecols=usecols, encoding="latin1")
 
-        df = df.rename(columns={j: i for i, j in params["column_mapping"].items()})
+        df = df.rename(columns=column_mapping)
 
-        if params.get("region_definition") is "IMGT":
+        if region_definition is "IMGT":
             if "amino_acid" in df.columns:
                 df['amino_acid'] = df["amino_acid"].str[1:-1]
             if "nucleotide" in df.columns:
@@ -33,10 +29,10 @@ class GenericSequenceImport:
 
         df = df.replace(["unresolved", "no data", "na", "unknown", "null", "nan", np.nan], Constants.UNKNOWN)
 
-        return df.apply(GenericSequenceImport.create_sequence_from_row, axis=1, args=(params,)).values
+        return df.apply(GenericSequenceImport.create_sequence_from_row, axis=1, args=(additional_columns,)).values
 
     @staticmethod
-    def create_sequence_from_row(row, params) -> ReceptorSequence:
+    def create_sequence_from_row(row, additional_columns) -> ReceptorSequence:
 
         metadata = SequenceMetadata(v_subgroup=row.get("v_subgroup", Constants.UNKNOWN),
                                     v_gene=row.get("v_gene", Constants.UNKNOWN),
@@ -54,7 +50,7 @@ class GenericSequenceImport:
                                     metadata=metadata)
 
         for column in row.keys():
-            if params["additional_columns"] == "*" or column in params["additional_columns"]:
+            if additional_columns == "*" or column in additional_columns:
                 metadata.custom_params[column] = row[column]
 
         return sequence
