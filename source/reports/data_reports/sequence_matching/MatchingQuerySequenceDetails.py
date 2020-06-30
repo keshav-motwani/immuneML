@@ -24,7 +24,7 @@ class MatchingQuerySequenceDetails(DataReport):
     @classmethod
     def build_object(cls, **kwargs):
 
-        location = "MatchingSequenceDetails"
+        location = "MatchingQuerySequenceDetails"
 
         if "max_edit_distance" in kwargs:
             ParameterValidator.assert_type_and_value(kwargs["max_edit_distance"], int, location, "max_edit_distance")
@@ -57,9 +57,6 @@ class MatchingQuerySequenceDetails(DataReport):
         self._match_repertoires()
         self._make_overview()
         self._make_matching_report()
-
-    def check_prerequisites(self):
-        pass
 
     def _match_repertoires(self):
 
