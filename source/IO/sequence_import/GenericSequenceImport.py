@@ -27,8 +27,6 @@ class GenericSequenceImport:
             if "nucleotide" in df.columns:
                 df['nucleotide'] = df["nucleotide"].str[3:-3]
 
-        df = df.replace(["unresolved", "no data", "na", "unknown", "null", "nan", np.nan], Constants.UNKNOWN)
-
         return df.apply(GenericSequenceImport.create_sequence_from_row, axis=1, args=(additional_columns,)).values
 
     @staticmethod
