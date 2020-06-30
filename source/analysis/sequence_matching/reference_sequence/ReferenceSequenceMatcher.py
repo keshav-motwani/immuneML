@@ -24,14 +24,10 @@ class ReferenceSequenceMatcher:
         hashed_reference_list = [HashedReceptorSequence.hash_sequence(sequence, metadata_attrs_to_match) for
                                  sequence in reference_sequences]
 
-        # with Pool(batch_size, maxtasksperchild=1) as pool:
-        #     fn = partial(ReferenceSequenceMatcher.match_repertoire, hashed_reference_list,
-        #                  metadata_attrs_to_match, same_length_sequence, max_edit_distance)
-        #     matched = pool.starmap(fn, enumerate(dataset.repertoires), chunksize=1)
-
-        matched = [ReferenceSequenceMatcher.match_repertoire(
-            hashed_reference_list, metadata_attrs_to_match, same_length_sequence, max_edit_distance, index, repertoire) for
-        index, repertoire in enumerate(dataset.repertoires)]
+        with Pool(batch_size, maxtasksperchild=1) as pool:
+            fn = partial(ReferenceSequenceMatcher.match_repertoire, hashed_reference_list,
+                         metadata_attrs_to_match, same_length_sequence, max_edit_distance)
+            matched = pool.starmap(fn, enumerate(dataset.repertoires), chunksize=1)
 
         b = time.time()
 
