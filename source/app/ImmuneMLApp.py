@@ -1,7 +1,7 @@
 import argparse
 import os
 import shutil
-import sys
+import sys; sys.path.extend([os.path.abspath(__file__ + "/../../../")])
 
 from source.caching.CacheType import CacheType
 from source.dsl.ImmuneMLParser import ImmuneMLParser
