@@ -75,7 +75,7 @@ class MatchingReferenceSequenceDetails(DataReport):
 
         filenames = []
 
-        for repertoire in self.matching_results:
+        for repertoire in self.matching_results.repertoires:
             filenames.append(self._make_repertoire_report(repertoire))
 
         return filenames
