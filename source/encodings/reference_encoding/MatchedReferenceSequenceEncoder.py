@@ -16,7 +16,7 @@ class MatchedReferenceSequenceEncoder(DatasetEncoder):
         "RepertoireDataset": "MatchedReferenceSequenceRepertoireEncoder"
     }
 
-    def __init__(self, reference_sequences: list, summary: SequenceMatchingSummaryType, same_length_sequence: bool, metadata_attrs_to_match: list, max_edit_distance: int, chunk_size: int):
+    def __init__(self, reference_sequences: list, summary: SequenceMatchingSummaryType, same_length_sequence: bool, metadata_attrs_to_match: list, max_edit_distance: int, chunk_size: int, name: str = None):
 
         self.reference_sequences = reference_sequences
         self.summary = summary
@@ -24,9 +24,10 @@ class MatchedReferenceSequenceEncoder(DatasetEncoder):
         self.metadata_attrs_to_match = metadata_attrs_to_match
         self.max_edit_distance = max_edit_distance
         self.chunk_size = chunk_size
+        self.name = name
 
     @staticmethod
-    def _prepare_parameters(max_edit_distance: int, summary: str, reference_sequences: dict, metadata_attrs_to_match: list, same_length_sequence: bool, chunk_size: int = 128):
+    def _prepare_parameters(max_edit_distance: int, summary: str, reference_sequences: dict, metadata_attrs_to_match: list, same_length_sequence: bool, chunk_size: int = 128, name: str = None):
 
         location = "MatchedReferenceSequenceEncoder"
 
@@ -50,7 +51,8 @@ class MatchedReferenceSequenceEncoder(DatasetEncoder):
             "reference_sequences": sequences,
             "metadata_attrs_to_match": metadata_attrs_to_match,
             "same_length_sequence": same_length_sequence,
-            "chunk_size": chunk_size
+            "chunk_size": chunk_size,
+            "name": name
         }
 
     @staticmethod
