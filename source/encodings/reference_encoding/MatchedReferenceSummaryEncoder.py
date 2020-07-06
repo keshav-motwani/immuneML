@@ -45,8 +45,9 @@ class MatchedReferenceSummaryEncoder(DatasetEncoder):
         assert os.path.isfile(reference_sequences["path"]), f"{location}: the file {reference_sequences['path']} does not exist. " \
                                                             f"Specify the correct path under reference_sequences."
 
-        sequences = ReflectionHandler.get_class_by_name("{}SequenceImport".format(reference_sequences["format"]))\
-            .import_items(reference_sequences["path"], paired=False)
+        importer = ReflectionHandler.get_class_by_name("{}SequenceImport".format(reference_sequences["format"]))
+
+        sequences = importer.import_items(reference_sequences["path"], **reference_sequences.get("params", {}))
 
         return {
             "max_edit_distance": max_edit_distance,
