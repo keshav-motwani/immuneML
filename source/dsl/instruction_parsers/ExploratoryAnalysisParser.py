@@ -79,4 +79,7 @@ class ExploratoryAnalysisParser:
         if "preprocessing_sequence" in analysis:
             params["preprocessing_sequence"] = symbol_table.get(analysis["preprocessing_sequence"])
 
+        if "batch_size" in analysis:
+            params["batch_size"] = analysis["batch_size"]
+
         return params
