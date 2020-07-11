@@ -1,9 +1,9 @@
 import copy
 import os
+from typing import List
 
 import pandas as pd
 
-from source.IO.dataset_export.PickleExporter import PickleExporter
 from source.IO.dataset_import.PickleImport import PickleImport
 from source.data_model.dataset.Dataset import Dataset
 from source.data_model.dataset.RepertoireDataset import RepertoireDataset
@@ -50,28 +50,18 @@ class SignalImplanter(Step):
             processed_repertoire = SignalImplanter._process_repertoire(index, repertoire, simulation_index, simulation_limits, input_params)
             processed_repertoires.append(processed_repertoire)
 
-            for signal in input_params.signals:
-                implanting_metadata[f"signal_{signal.id}"].append(processed_repertoire.metadata[f"signal_{signal.id}"])
-
-        processed_dataset = RepertoireDataset(repertoires=processed_repertoires, params=input_params.dataset.params,
-                                              metadata_file=SignalImplanter._create_metadata_file(input_params.dataset.metadata_file,
-                                                                                                  implanting_metadata, input_params))
-        PickleExporter.export(processed_dataset, input_params.result_path)
-
+        processed_dataset = RepertoireDataset(repertoires=processed_repertoires, params=input_params.dataset.params, name=input_params.dataset.name,
+                                              metadata_file=SignalImplanter._create_metadata_file(processed_repertoires, input_params))
         return processed_dataset
 
     @staticmethod
-    def _create_metadata_file(metadata_path, implanting_metadata: dict, input_params) -> str:
+    def _create_metadata_file(processed_repertoires: List[Repertoire], input_params) -> str:
 
-        new_info_df = pd.DataFrame(implanting_metadata)
         path = input_params.result_path + "metadata.csv"
 
-        if metadata_path:
-            df = pd.read_csv(metadata_path)
-        else:
-            df = pd.DataFrame({"filename": input_params.dataset.get_example_ids()})
-
-        new_df = pd.concat([df, new_info_df], axis=1)
+        new_df = pd.DataFrame([repertoire.metadata for repertoire in processed_repertoires])
+        new_df.drop('field_list', axis=1, inplace=True)
+        new_df["filename"] = [repertoire.data_filename for repertoire in processed_repertoires]
         new_df.to_csv(path, index=False)
 
         return path

@@ -1,6 +1,7 @@
 from source.data_model.dataset.Dataset import Dataset
 from source.encodings.EncoderParams import EncoderParams
 from source.reports.ReportResult import ReportResult
+from source.util.PathBuilder import PathBuilder
 from source.workflows.instructions.Instruction import Instruction
 from source.workflows.instructions.exploratory_analysis.ExploratoryAnalysisState import ExploratoryAnalysisState
 from source.workflows.instructions.exploratory_analysis.ExploratoryAnalysisUnit import ExploratoryAnalysisUnit
@@ -23,7 +24,8 @@ class ExploratoryAnalysisInstruction(Instruction):
             Each of these includes a dataset on which to perform the analysis, report to run, and optionally preprocessing sequence,
             encoding (if the report needs to be executed on the encoded dataset) and label configuration (if the dataset needs to be
             encoded, it is also necessary to specify a label for encoding - a label could correspond to an immune event or to genetic
-            information (e.g. HLA).
+            information (e.g. HLA). The batch size can also be set to encode multiple repertoires in parallel, but this also increases
+            the memory usage, so it must be reasonably set.
 
     Specification:
 
@@ -43,6 +45,7 @@ class ExploratoryAnalysisInstruction(Instruction):
                     labels: # labels present in the dataset d1 which will be included in the encoded data on which report r2 will be run
                         - celiac # name of the first label as present in the column of dataset's metadata file
                         - CMV # name of the second label as present in the column of dataset's metadata file
+                    batch_size: 16
 
     """
 
@@ -50,12 +53,14 @@ class ExploratoryAnalysisInstruction(Instruction):
         assert all(isinstance(unit, ExploratoryAnalysisUnit) for unit in exploratory_analysis_units.values()), \
             "ExploratoryAnalysisInstruction: not all elements passed to init method are instances of ExploratoryAnalysisUnit."
         self.state = ExploratoryAnalysisState(exploratory_analysis_units, name=name)
+        self.name = name
 
     def run(self, result_path: str):
-        self.state.result_path = result_path
+        self.state.result_path = result_path + f"{self.name}/"
+        PathBuilder.build(self.state.result_path)
         for index, (key, unit) in enumerate(self.state.exploratory_analysis_units.items()):
             print("Started analysis {}/{}.".format(index+1, len(self.state.exploratory_analysis_units)))
-            report_result = self.run_unit(unit, result_path + "analysis_{}/".format(key))
+            report_result = self.run_unit(unit, self.state.result_path + "analysis_{}/".format(key))
             unit.report_result = report_result
             print("Finished analysis {}/{}.".format(index+1, len(self.state.exploratory_analysis_units)))
         return self.state

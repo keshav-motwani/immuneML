@@ -37,19 +37,18 @@ class SimulationParser:
                                 0: 1
                                 1: 0
                                 2: 0
-                            params:
-                                hamming_distance_probabilities:
-                                    0: 0.5 # Hamming distance of 0 (no change) with probability 0.5
-                                    1: 0.5 # Hamming distance of 1 (one letter change) with probability 0.5
-                                min_gap: 0
-                                max_gap: 1
+                            hamming_distance_probabilities:
+                                0: 0.5 # Hamming distance of 0 (no change) with probability 0.5
+                                1: 0.5 # Hamming distance of 1 (one letter change) with probability 0.5
+                            min_gap: 0
+                            max_gap: 1
             signals:
                 s1:
                     motifs: # list of all motifs for signal which will be uniformly sampled to get a motif instance for implanting
                         - m1
                     sequence_position_weights: # likelihood of implanting at IMGT position of receptor sequence
                         107: 0.5
-                    implanting: HealthySequences # choose only sequences with no other signals for to implant one of the motifs
+                    implanting: HealthySequence # choose only sequences with no other signals for to implant one of the motifs
             simulations:
                 sim1: # one Simulation object consists of a dict of Implanting objects
                     i1:
@@ -65,13 +64,13 @@ class SimulationParser:
                 simulation: sim1
                 batch_size: 5 # number of repertoires that can be loaded at the same time
                               # (only affects the speed)
-                export_format: AIRR
+                export_formats: [AIRR, Pickle]
 
     """
 
     def parse(self, key: str, instruction: dict, symbol_table: SymbolTable) -> SimulationInstruction:
 
-        ParameterValidator.assert_keys(instruction.keys(), ["dataset", "batch_size", "simulation", "type", "export_format"],
+        ParameterValidator.assert_keys(instruction.keys(), ["dataset", "batch_size", "simulation", "type", "export_formats"],
                                        "SimulationParser", key)
 
         signals = [signal.item for signal in symbol_table.get_by_type(SymbolType.SIGNAL)]
@@ -79,20 +78,20 @@ class SimulationParser:
         dataset = symbol_table.get(instruction["dataset"])
         batch_size = instruction["batch_size"]
 
-        exporter = self.parse_exporter(instruction)
+        exporters = self.parse_exporters(instruction)
 
         process = SimulationInstruction(signals=signals, simulation=simulation, dataset=dataset, batch_size=batch_size, name=key,
-                                        exporter=exporter)
+                                        exporters=exporters)
         return process
 
-    def parse_exporter(self, instruction):
-        if instruction["export_format"] is not None:
+    def parse_exporters(self, instruction):
+        if instruction["export_formats"] is not None:
             class_path = "dataset_export/"
-            classes = ReflectionHandler.get_classes_by_partial_name("Exporter", class_path)
-            valid_values = [cls.__name__[:-8] for cls in ReflectionHandler.all_nonabstract_subclasses(DataExporter)]
-            ParameterValidator.assert_in_valid_list(instruction["export_format"], valid_values, "SimulationParser", "export_format")
-            exporter = ReflectionHandler.get_class_by_name(f"{instruction['export_format']}Exporter", class_path)
+            ParameterValidator.assert_all_in_valid_list(instruction["export_formats"],
+                                                        ReflectionHandler.all_nonabstract_subclass_basic_names(DataExporter, 'Exporter', class_path),
+                                                        location="SimulationParser", parameter_name="export_formats")
+            exporters = [ReflectionHandler.get_class_by_name(f"{item}Exporter", class_path) for item in instruction["export_formats"]]
         else:
-            exporter = None
+            exporters = None
 
-        return exporter
+        return exporters

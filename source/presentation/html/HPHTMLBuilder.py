@@ -28,7 +28,7 @@ class HPHTMLBuilder:
              path to the main HTML file (index.html which is located under state.result_path)
         """
 
-        base_path = os.path.relpath(state.path + "/../") if is_index else os.path.relpath(state.path) + "/"
+        base_path = state.path + "../" if is_index else state.path
         html_map = HPHTMLBuilder.make_main_html_map(state, base_path)
         result_file = f"{state.path}HPOptimizationReport.html"
 
@@ -105,8 +105,7 @@ class HPHTMLBuilder:
                     "hp_setting": key,
                     "optimization_metric_val": round(item.performance, HPHTMLBuilder.NUM_DIGITS)
                 } for key, item in assessment_state.label_states[label].assessment_items.items()],
-                "selection_path": Util.get_relative_path(assessment_state.path,
-                                                         HPHTMLBuilder.make_selection_split_path(i, state, label))
+                "selection_path": os.path.relpath(HPHTMLBuilder.make_selection_split_path(i, state, label), assessment_state.path)
             } for label in state.label_configuration.get_labels_by_name()]
 
             assessment_list.append(assessment_item)
@@ -120,8 +119,7 @@ class HPHTMLBuilder:
               "hp_setting": assessment_state.label_states[label].optimal_assessment_item.hp_setting,
               "optimization_metric_val": round(assessment_state.label_states[label].optimal_assessment_item.performance,
                                                HPHTMLBuilder.NUM_DIGITS),
-              "split_details_path": Util.get_relative_path(base_path,
-                                                           HPHTMLBuilder.make_assessment_split_path(assessment_state.split_index, state))}
+              "split_details_path": os.path.relpath(HPHTMLBuilder.make_assessment_split_path(assessment_state.split_index, state), base_path)}
              for i, assessment_state in enumerate(state.assessment_states)]} for label in
                 state.label_configuration.get_labels_by_name()]
 
@@ -129,6 +127,7 @@ class HPHTMLBuilder:
     def make_main_html_map(state: HPOptimizationState, base_path: str) -> dict:
         html_map = {
             "css_style": Util.get_css_content(HPHTMLBuilder.CSS_PATH),
+            "full_specs": Util.get_full_specs_path(base_path, state.path),
             "dataset_name": state.dataset.name if state.dataset.name is not None else state.dataset.identifier,
             "dataset_type": StringHelper.camel_case_to_word_string(type(state.dataset).__name__),
             "example_count": state.dataset.get_example_count(),

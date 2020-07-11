@@ -63,7 +63,8 @@ class PickleImport(DataImport):
     def _import_from_metadata(pickle_params,  dataset_name):
         with open(pickle_params.metadata_file, "r") as file:
             dataset_filename = file.readline().replace(Constants.COMMENT_SIGN, "").replace("\n", "")
-        pickle_params.path = f"{os.path.dirname(pickle_params.metadata_file)}/{dataset_filename}"
+        pickle_params.path = f"{os.path.dirname(pickle_params.metadata_file)}/{dataset_filename}" \
+            if os.path.dirname(pickle_params.metadata_file) != "" else dataset_filename
 
         assert os.path.isfile(pickle_params.path), f"PickleImport: dataset file {dataset_filename} specified in " \
                                                    f"{pickle_params.metadata_file} could not be found ({pickle_params.path} is not a file), " \
@@ -83,10 +84,14 @@ class PickleImport(DataImport):
     @staticmethod
     def _discover_repertoire_path(pickle_params, dataset):
         dataset_dir = os.path.dirname(pickle_params.path)
-        if len(list(glob(f"{dataset_dir}/*.npy"))) == len(dataset.repertoires):
-            path = dataset_dir + "/"
-        elif len(list(glob(f"{dataset_dir}/repertoires/*.npy"))) == len(dataset.repertoires):
-            path = dataset_dir + "/repertoires/"
+
+        if dataset_dir != "":
+            dataset_dir = dataset_dir + "/"
+
+        if len(list(glob(f"{dataset_dir}*.npy"))) == len(dataset.repertoires):
+            path = dataset_dir
+        elif len(list(glob(f"{dataset_dir}repertoires/*.npy"))) == len(dataset.repertoires):
+            path = dataset_dir + "repertoires/"
         else:
             path = None
 

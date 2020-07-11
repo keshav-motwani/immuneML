@@ -2,6 +2,7 @@ import argparse
 import os
 import shutil
 import sys; sys.path.extend([os.path.abspath(__file__ + "/../../../")])
+import warnings
 
 from source.caching.CacheType import CacheType
 from source.dsl.ImmuneMLParser import ImmuneMLParser
@@ -18,6 +19,11 @@ class ImmuneMLApp:
     def __init__(self, specification_path: str, result_path: str):
         self._specification_path = specification_path
         self._result_path = os.path.relpath(result_path) + "/"
+
+        if os.path.isdir(self._result_path) and len(os.listdir(self._result_path)) != 0:
+            raise ValueError(f"Directory {self._result_path} already exists. Please specify a new output directory for the analysis.")
+        PathBuilder.build(self._result_path)
+
         self._cache_path = f"{self._result_path}cache/"
 
     def set_cache(self):
@@ -29,16 +35,8 @@ class ImmuneMLApp:
         EnvironmentSettings.reset_cache_path()
         del os.environ[Constants.CACHE_TYPE]
 
-    def set_logging(self):
-        if "ImmuneML_with_Galaxy" in os.environ and os.environ["ImmuneML_with_Galaxy"]:
-            sys.stderr = open(self._result_path + "log.txt", 'w')
-
     def run(self):
 
-        if self._result_path is not None:
-            PathBuilder.build(self._result_path, warn_if_exists=True)
-
-        self.set_logging()
         self.set_cache()
 
         symbol_table, self._specification_path = ImmuneMLParser.parse_yaml_file(self._specification_path,
@@ -56,9 +54,14 @@ class ImmuneMLApp:
 
 
 def run_immuneML(namespace: argparse.Namespace):
+
     if namespace.tool is None:
         app = ImmuneMLApp(namespace.yaml_path, namespace.output_dir)
     else:
+
+        warnings.showwarning = lambda message, category, filename, lineno, file=None, line=None: \
+            sys.stdout.write(warnings.formatwarning(message, category, filename, lineno))
+
         app_cls = ReflectionHandler.get_class_by_name(namespace.tool, "api/")
         app = app_cls(**vars(namespace))
     app.run()
