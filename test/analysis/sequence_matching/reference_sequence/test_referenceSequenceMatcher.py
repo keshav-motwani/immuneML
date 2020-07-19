@@ -25,16 +25,26 @@ class TestReferenceSequenceMatcher(TestCase):
             ReceptorSequence(amino_acid_sequence="TADQVF", metadata=SequenceMetadata(chain="A", v_gene="V1", j_gene="J3"), identifier="6")],
             metadata={"CD": True}, path=path)
 
-        dataset = RepertoireDataset(repertoires=[repertoire])
+        repertoire2 = Repertoire.build_from_sequence_objects(sequence_objects=[
+            ReceptorSequence(amino_acid_sequence="SDKFJLDLSKDS", metadata=SequenceMetadata(chain="A", v_gene="V1", j_gene="J2"), identifier="3"),
+            ReceptorSequence(amino_acid_sequence="CCCCCC", metadata=SequenceMetadata(chain="A", v_gene="V1", j_gene="J2"), identifier="4"),
+            ReceptorSequence(amino_acid_sequence="SDFOJSDLFK", metadata=SequenceMetadata(chain="A", v_gene="V1", j_gene="J2"), identifier="5"),
+            ReceptorSequence(amino_acid_sequence="TADQVF", metadata=SequenceMetadata(chain="A", v_gene="V1", j_gene="J3"), identifier="6")],
+            metadata={"CD": True}, path=path)
+
+
+        dataset = RepertoireDataset(repertoires=[repertoire, repertoire2])
         sequences = [ReceptorSequence("AAAACA", metadata=SequenceMetadata(chain="A", v_gene="V1", j_gene="J2"), identifier="1"),
                      ReceptorSequence("TADQV", metadata=SequenceMetadata(chain="A", v_gene="V1", j_gene="J3"), identifier="2")]
 
         matcher = ReferenceSequenceMatcher
         result = matcher.match(dataset, sequences, False, ["v_gene", "j_gene"], 1, batch_size=8)
 
-        self.assertTrue(len(result.repertoires) == 1)
+        self.assertTrue(len(result.repertoires) == 2)
         self.assertTrue(len(result.repertoires[0].reference_sequences) == 2) # number of reference sequences
         self.assertTrue(len(result.repertoires[0].reference_sequences[0].matching_query_sequences) == 2) # number of matching sequences for 1st reference sequence
         self.assertTrue(len(result.repertoires[0].reference_sequences[1].matching_query_sequences) == 1) # number of matching sequences for 2nd reference sequence
+        self.assertTrue(len(result.repertoires[1].reference_sequences[0].matching_query_sequences) == 0) # number of matching sequences for 1st reference sequence
+        self.assertTrue(len(result.repertoires[1].reference_sequences[1].matching_query_sequences) == 1) # number of matching sequences for 1st reference sequence
 
         shutil.rmtree(path)

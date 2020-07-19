@@ -37,12 +37,11 @@ class SequenceMatcher:
             string_query_matches = [sequence[0] for sequence in string_query_matches]
 
             slim_query_matches = [slim_query_sequence_map[sequence] for sequence in string_query_matches]
-            slim_query_matches = [item for items in slim_query_matches for item in items]
+            slim_query_matches = [item for items in slim_query_matches for item in items if SequenceMatcher.evaluate_slim_sequence_match(i.slim_sequence, item, same_length_sequence)]
 
-            for j in slim_query_matches:
+            tmp = [(hash(j), i.hash) for j in slim_query_matches]
 
-                if SequenceMatcher.evaluate_slim_sequence_match(i.slim_sequence, j, same_length_sequence):
-                    result.append((hash(j), i.hash))
+            result.extend(tmp)
 
         return result
 

@@ -2,6 +2,7 @@ import time
 from collections import defaultdict
 from functools import partial
 from multiprocessing.pool import Pool
+import numpy as np
 
 from source.analysis.sequence_matching.HashedReceptorSequence import HashedReceptorSequence
 from source.analysis.sequence_matching.SequenceMatchedDataset import SequenceMatchedDataset
@@ -27,7 +28,7 @@ class ReferenceSequenceMatcher:
         with Pool(batch_size, maxtasksperchild=1) as pool:
             fn = partial(ReferenceSequenceMatcher.match_repertoire, hashed_reference_list,
                          metadata_attrs_to_match, same_length_sequence, max_edit_distance)
-            matched = pool.starmap(fn, enumerate(dataset.repertoires), chunksize=1)
+            matched = pool.starmap(fn, enumerate(dataset.repertoires))
 
         b = time.time()
 
@@ -49,17 +50,20 @@ class ReferenceSequenceMatcher:
         matches = SequenceMatcher.evaluate_repertoire_matches(hashed_query_list, hashed_reference_list,
                                                               same_length_sequence, max_edit_distance)
 
-        matches = ReferenceSequenceMatcher.generate_reference_to_query_map(matches)
+        hashes = np.array([hashed_query.hash for hashed_query in hashed_query_list])
 
-        total_reads = sum([sequence.metadata.count for sequence in repertoire.sequences])
-        unique_reads = len(repertoire.sequences)
+        matches = ReferenceSequenceMatcher.generate_reference_to_query_map(matches, hashes)
+
+        counts = repertoire.get_counts()
+        total_reads = int(np.sum(counts))
+        unique_reads = counts.shape[0]
 
         matched = SequenceMatchedReferenceRepertoire(
             identifier=repertoire.identifier,
             index=index,
             filename=repertoire.data_filename,
             metadata=repertoire.metadata,
-            chains=list(set([sequence.metadata.chain for sequence in repertoire.sequences])),
+            chains=None,
             total_reads=total_reads,
             unique_reads=unique_reads
         )
@@ -74,14 +78,13 @@ class ReferenceSequenceMatcher:
         return matched
 
     @staticmethod
-    def match_sequence(hashed_reference: HashedReceptorSequence, hashed_query_list: list,
+    def match_sequence(hashed_reference: HashedReceptorSequence, hashed_query_list,
                        reference_to_query_matches_map: dict) -> MatchedReferenceSequence:
 
-        if hashed_reference.hash in reference_to_query_matches_map:
-            matching_query_sequences = [hashed_query.sequence for hashed_query in hashed_query_list if
-                                        hashed_query.hash in reference_to_query_matches_map[hashed_reference.hash]]
-        else:
-            matching_query_sequences = []
+        matching_query_sequences = [hashed_query_list[i].sequence for i in
+                                    reference_to_query_matches_map.get(hashed_reference.hash, [])]
+
+
 
         result = MatchedReferenceSequence(reference_sequence=hashed_reference.sequence,
                                           matching_query_sequences=matching_query_sequences)
@@ -89,11 +92,13 @@ class ReferenceSequenceMatcher:
         return result
 
     @staticmethod
-    def generate_reference_to_query_map(matches: set):
+    def generate_reference_to_query_map(matches: set, query_hashes):
 
-        mapping = defaultdict(set)
+        mapping = defaultdict(list)
 
         for pair in matches:
-            mapping[pair[1]].add(pair[0])
+            mapping[pair[1]].append(np.nonzero(query_hashes == pair[0])[0])
+
+        mapping = {i: np.hstack(j) for i, j in mapping.items()}
 
         return mapping
