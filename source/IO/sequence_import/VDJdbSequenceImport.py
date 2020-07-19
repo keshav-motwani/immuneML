@@ -1,6 +1,8 @@
+from typing import List
+
 import pandas as pd
 
-from source.data_model.receptor.ReceptorList import ReceptorList
+from source.data_model.receptor.Receptor import Receptor
 from source.data_model.receptor.TCABReceptor import TCABReceptor
 from source.data_model.receptor.receptor_sequence.ReceptorSequence import ReceptorSequence
 from source.data_model.receptor.receptor_sequence.ReceptorSequenceList import ReceptorSequenceList
@@ -25,11 +27,11 @@ class VDJdbSequenceImport:
         return sequences
 
     @staticmethod
-    def import_paired_sequences(path) -> ReceptorList:
+    def import_paired_sequences(path) -> List[Receptor]:
         columns = VDJdbSequenceImport.COLUMNS + list(VDJdbSequenceImport.CUSTOM_COLUMNS.keys())
-        df = pd.read_csv(path, sep="\t", usecols=columns)
+        df = pd.read_csv(path, sep="\t", usecols=columns, dtype=str)
         identifiers = df["complex.id"].unique()
-        receptors = ReceptorList()
+        receptors = []
 
         for identifier in identifiers:
             receptor = VDJdbSequenceImport.import_receptor(df, identifier)
@@ -48,7 +50,7 @@ class VDJdbSequenceImport:
         return TCABReceptor(alpha=alpha,
                             beta=beta,
                             identifier=identifier,
-                            metadata=beta.metadata.custom_params)
+                            metadata={**beta.metadata.custom_params})
 
     @staticmethod
     def import_all_sequences(path) -> ReceptorSequenceList:
@@ -59,9 +61,9 @@ class VDJdbSequenceImport:
 
     @staticmethod
     def import_sequence(row):
-        metadata = SequenceMetadata(v_gene=row["V"][3:] if "V" in row else None,  # remove TRB/A from gene name
-                                    j_gene=row["J"][3:] if "J" in row else None,  # remove TRB/A from gene name
-                                    chain=row["Gene"][-1] if "Gene" in row else None,
+        metadata = SequenceMetadata(v_gene=str(row["V"])[3:] if "V" in row else None,  # remove TRB/A from gene name
+                                    j_gene=str(row["J"])[3:] if "J" in row else None,  # remove TRB/A from gene name
+                                    chain=str(row["Gene"])[-1] if "Gene" in row else None,
                                     region_type="CDR3",
                                     custom_params={VDJdbSequenceImport.CUSTOM_COLUMNS[key]: row[key]
                                                    for key in VDJdbSequenceImport.CUSTOM_COLUMNS})

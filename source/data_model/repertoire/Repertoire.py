@@ -10,8 +10,8 @@ import numpy as np
 from source.data_model.DatasetItem import DatasetItem
 from source.data_model.cell.Cell import Cell
 from source.data_model.cell.CellList import CellList
+from source.data_model.receptor.Receptor import Receptor
 from source.data_model.receptor.ReceptorBuilder import ReceptorBuilder
-from source.data_model.receptor.ReceptorList import ReceptorList
 from source.data_model.receptor.receptor_sequence.ReceptorSequence import ReceptorSequence
 from source.data_model.receptor.receptor_sequence.ReceptorSequenceList import ReceptorSequenceList
 from source.data_model.receptor.receptor_sequence.SequenceAnnotation import SequenceAnnotation
@@ -59,7 +59,7 @@ class Repertoire(DatasetItem):
     @classmethod
     def build(cls, sequence_aas: list = None, sequences: list = None, v_genes: list = None, j_genes: list = None,
               chains: list = None, counts: list = None, region_types: list = None, frame_types: list = None,
-              custom_lists: dict = None, sequence_identifiers: list = None, path: str = None, metadata=dict(),
+              custom_lists: dict = None, sequence_identifiers: list = None, path: str = None, metadata: dict = None,
               signals: dict = None, cell_ids: list = None):
 
         sequence_count = Repertoire.check_count(sequence_aas, sequences, custom_lists)
@@ -93,6 +93,7 @@ class Repertoire(DatasetItem):
         np.save(data_filename, repertoire_matrix)
 
         metadata_filename = f"{path}{identifier}_metadata.pickle"
+        metadata = {} if metadata is None else metadata
         metadata["field_list"] = field_list
         with open(metadata_filename, "wb") as file:
             pickle.dump(metadata, file)
@@ -283,7 +284,7 @@ class Repertoire(DatasetItem):
         return seqs
 
     @property
-    def receptors(self) -> ReceptorList:
+    def receptors(self) -> List[Receptor]:
         """
         A property that creates a list of Receptor objects based on the cell_ids field in the following manner:
             - all sequences that have the same cell_id are grouped together
@@ -297,7 +298,7 @@ class Repertoire(DatasetItem):
         Returns:
             ReceptorList: a list of objects of Receptor class
         """
-        receptors = ReceptorList()
+        receptors = []
 
         same_cell_lists = self._prepare_cell_lists()
 
