@@ -84,8 +84,6 @@ class ReferenceSequenceMatcher:
         matching_query_sequences = [hashed_query_list[i].sequence for i in
                                     reference_to_query_matches_map.get(hashed_reference.hash, [])]
 
-
-
         result = MatchedReferenceSequence(reference_sequence=hashed_reference.sequence,
                                           matching_query_sequences=matching_query_sequences)
 

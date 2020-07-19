@@ -73,7 +73,7 @@ class MatchedReferenceSequenceRepertoireEncoder(MatchedReferenceSequenceEncoder)
         encoded = np.zeros((len(self.reference_sequences,)),
                                                  dtype=float)
 
-        repertoire = ReferenceSequenceMatcher.match_repertoire(self.hashed_reference_sequences,
+        rep = ReferenceSequenceMatcher.match_repertoire(self.hashed_reference_sequences,
                                                   self.metadata_attrs_to_match,
                                                   self.same_length_sequence,
                                                   self.max_edit_distance,
@@ -81,7 +81,7 @@ class MatchedReferenceSequenceRepertoireEncoder(MatchedReferenceSequenceEncoder)
                                                   repertoire)
 
         for j in range(len(self.reference_sequences)):
-            encoded[j] = self.get_feature_value(repertoire, j)
+            encoded[j] = self.get_feature_value(rep, j)
 
         label_config = params["label_configuration"]
         labels = dict()
@@ -90,10 +90,16 @@ class MatchedReferenceSequenceRepertoireEncoder(MatchedReferenceSequenceEncoder)
             label = repertoire.metadata[label_name]
             labels[label_name] = label
 
+        repertoire.free_memory()
+
         return encoded, repertoire.identifier, labels
 
     def get_feature_name(self, sequence, metadata_attrs):
-        return str((sequence.get_sequence() + str(tuple([getattr(sequence.metadata, k) for k in metadata_attrs]))).replace("\"\"", ""))
+        if len(metadata_attrs) == 0:
+            feature = sequence.get_sequence()
+        else:
+            feature = sequence.get_sequence() + "-" + "-".join([getattr(sequence.metadata, k) for k in metadata_attrs])
+        return feature
 
     def get_feature_value(self, matched_repertoire, j):
 
