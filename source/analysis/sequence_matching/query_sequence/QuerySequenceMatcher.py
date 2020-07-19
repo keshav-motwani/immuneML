@@ -3,11 +3,14 @@ from collections import defaultdict
 from functools import partial
 from multiprocessing.pool import Pool
 
+import numpy as np
+
 from source.analysis.sequence_matching.HashedReceptorSequence import HashedReceptorSequence
 from source.analysis.sequence_matching.SequenceMatchedDataset import SequenceMatchedDataset
 from source.analysis.sequence_matching.SequenceMatcher import SequenceMatcher
 from source.analysis.sequence_matching.query_sequence.MatchedQuerySequence import MatchedQuerySequence
-from source.analysis.sequence_matching.query_sequence.SequenceMatchedQueryRepertoire import SequenceMatchedQueryRepertoire
+from source.analysis.sequence_matching.query_sequence.SequenceMatchedQueryRepertoire import \
+    SequenceMatchedQueryRepertoire
 from source.data_model.dataset.RepertoireDataset import RepertoireDataset
 from source.data_model.repertoire.Repertoire import Repertoire
 
@@ -50,10 +53,13 @@ class QuerySequenceMatcher:
         matches = SequenceMatcher.evaluate_repertoire_matches(hashed_query_list, hashed_reference_list,
                                                               same_length_sequence, max_edit_distance)
 
-        matches = QuerySequenceMatcher.generate_query_to_reference_map(matches)
+        hashes = np.array([hashed_query.hash for hashed_query in hashed_reference_list])
 
-        total_reads = sum([sequence.metadata.count for sequence in repertoire.sequences])
-        unique_reads = len(repertoire.sequences)
+        matches = QuerySequenceMatcher.generate_query_to_reference_map(matches, hashes)
+
+        counts = repertoire.get_counts()
+        total_reads = int(np.sum(counts))
+        unique_reads = counts.shape[0]
 
         matched = SequenceMatchedQueryRepertoire(
             identifier=repertoire.identifier,
@@ -86,11 +92,8 @@ class QuerySequenceMatcher:
     def match_sequence(hashed_query: HashedReceptorSequence, hashed_reference_list: list,
                        query_to_reference_matches_map: dict) -> MatchedQuerySequence:
 
-        if hashed_query.hash in query_to_reference_matches_map:
-            matching_reference_sequences = [hashed_reference.sequence for hashed_reference in hashed_reference_list if
-                                            hashed_reference.hash in query_to_reference_matches_map[hashed_query.hash]]
-        else:
-            matching_reference_sequences = []
+        matching_reference_sequences = [hashed_reference_list[i].sequence for i in
+                                        query_to_reference_matches_map.get(hashed_query.hash, [])]
 
         result = MatchedQuerySequence(query_sequence=hashed_query.sequence,
                                       matching_reference_sequences=matching_reference_sequences)
@@ -114,11 +117,13 @@ class QuerySequenceMatcher:
         return unique_reads
 
     @staticmethod
-    def generate_query_to_reference_map(matches: set):
+    def generate_query_to_reference_map(matches: set, reference_hashes):
 
-        mapping = defaultdict(set)
+        mapping = defaultdict(list)
 
         for pair in matches:
-            mapping[pair[0]].add(pair[1])
+            mapping[pair[0]].append(np.nonzero(reference_hashes == pair[1])[0])
+
+        mapping = {i: np.hstack(j) for i, j in mapping.items()}
 
         return mapping
