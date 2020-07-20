@@ -69,7 +69,6 @@ class MatchedReferenceSequenceEncoder(DatasetEncoder):
 
     def encode(self, dataset, params: EncoderParams):
         cache_key = CacheHandler.generate_cache_key(self._prepare_caching_params(dataset, params))
-        print(cache_key)
         encoded_dataset = CacheHandler.memo(cache_key,
                                             lambda: self._encode_new_dataset(dataset, params))
 

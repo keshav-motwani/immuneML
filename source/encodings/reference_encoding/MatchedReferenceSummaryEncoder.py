@@ -80,10 +80,10 @@ class MatchedReferenceSummaryEncoder(DatasetEncoder):
     def _prepare_caching_params(self, dataset, params: EncoderParams):
 
         encoding_params_desc = {"same_length_sequence": self.same_length_sequence,
+                                "summary": self.summary,
                                 "metadata_attrs_to_match": sorted(self.metadata_attrs_to_match),
-                                "summary": "_".join([summary.name.lower() for summary in self.summary]),
                                 "max_edit_distance": self.max_edit_distance,
-                                "reference_sequences": sorted([str(seq) for seq in self.reference_sequences])}
+                                "reference_sequences": sorted([seq.get_sequence() for seq in self.reference_sequences])}
 
         return (("dataset_identifiers", tuple(dataset.get_example_ids())),
                 ("dataset_metadata", dataset.metadata_file),
