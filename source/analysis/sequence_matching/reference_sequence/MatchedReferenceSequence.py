@@ -11,4 +11,4 @@ class MatchedReferenceSequence(object):
 
     def create_sequence_dict(self, sequence: ReceptorSequence):
 
-        return {"sequence": sequence.get_sequence(), **vars(sequence.metadata)}
+        return {"sequence": sequence.get_sequence(), **vars(sequence.metadata), "identifier": sequence.identifier}
