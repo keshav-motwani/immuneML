@@ -3,6 +3,8 @@ pdf(NULL)
 plot_heatmap = function(matrix,
                         row_annotations = NULL,
                         column_annotations = NULL,
+                        one_hot_row_annotations = NULL,
+                        one_hot_column_annotations = NULL,
                         split_rows = NULL,
                         split_columns = NULL,
                         palette = list(),
@@ -24,11 +26,13 @@ plot_heatmap = function(matrix,
                         column_names_size = 4,
                         value_name = "value",
                         title = character(0),
-                        scale_rows = FALSE,
+                        row_standardization = "scale",
+                        heatmap_color = "BWR",
                         height = 10,
                         width = 10,
                         result_name = "test_heatmap",
                         result_path = getwd()) {
+
   params = as.list(match.call())
   params[[1]] = NULL
   saveRDS(params, file.path(result_path, paste0(result_name, ".rds")))
@@ -36,8 +40,10 @@ plot_heatmap = function(matrix,
   if (is.character(matrix)) {
     matrix = read.table(matrix, header = FALSE, sep = ",")
   }
-  if (!is.null(column_names)) colnames(matrix) = as.character(column_names)
-  if (!is.null(row_names)) rownames(matrix) = as.character(row_names)
+  if (!is.null(column_names))
+    colnames(matrix) = as.character(column_names)
+  if (!is.null(row_names))
+    rownames(matrix) = as.character(row_names)
   if (is.character(row_annotations)) {
     row_annotations = as.data.frame(readr::read_csv(row_annotations))
     row_annotations$X1 = NULL
@@ -46,20 +52,41 @@ plot_heatmap = function(matrix,
     column_annotations = as.data.frame(readr::read_csv(column_annotations))
     column_annotations$X1 = NULL
   }
+  if (is.character(one_hot_row_annotations)) {
+    one_hot_row_annotations = as.data.frame(readr::read_csv(one_hot_row_annotations))
+    one_hot_row_annotations$X1 = NULL
+  }
+  if (is.character(one_hot_column_annotations)) {
+    one_hot_column_annotations = as.data.frame(readr::read_csv(one_hot_column_annotations))
+    one_hot_column_annotations$X1 = NULL
+  }
+  if (!is.list(palette))
+    palette = rjson::fromJSON(palette)
   show_legend_row = as.character(show_legend_row)
   show_legend_column = as.character(show_legend_column)
 
-    if (scale_rows) {
-    matrix = t(apply(t(matrix), MARGIN = 2, FUN = function(X) (X - min(X))/diff(range(X))))
+  if (row_standardization == "scale") {
+    matrix = t(scale(t(matrix)))
+  } else if (row_standardization == "min_max") {
+    indices = rowSums(matrix) > 0
+    matrix = matrix[indices, ]
+    row_annotations = row_annotations[indices, , drop = FALSE]
+    one_hot_row_annotations = one_hot_row_annotations[indices, , drop = FALSE]
+    matrix = t(apply(
+      t(matrix),
+      MARGIN = 2,
+      FUN = function(X)
+        (X - min(X)) / diff(range(X))
+    ))
   }
 
-  if (!is.list(palette)) palette = rjson::fromJSON(palette)
-
   heatmap = ggexp::plot_heatmap(
-      matrix = matrix,
-      row_annotations = row_annotations,
-      column_annotations = column_annotations,
-      split_rows = split_rows,
+    matrix = matrix,
+    row_annotations = row_annotations,
+    column_annotations = column_annotations,
+    one_hot_row_annotations = one_hot_row_annotations,
+    one_hot_column_annotations = one_hot_column_annotations,
+    split_rows = split_rows,
     split_columns = split_columns,
     palette = palette,
     cluster_rows = cluster_rows,
@@ -77,8 +104,8 @@ plot_heatmap = function(matrix,
     row_names_size = row_names_size,
     column_names_size = column_names_size,
     value_name = value_name,
-    title = title
-
+    title = title,
+    heatmap_color = heatmap_color
   )
 
   png(

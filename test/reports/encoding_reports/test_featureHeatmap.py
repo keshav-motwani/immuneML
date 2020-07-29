@@ -52,8 +52,8 @@ class TestFeatureHeatmap(TestCase):
         dataset = RepertoireDataset(encoded_data=EncodedData(**encoded_data))
 
         FeatureHeatmap.build_object(dataset=dataset,
-                       scale_features=False,
-                       one_hot_encode_example_annotations=["disease"],
+                       feature_standardization="min_max",
+                       one_hot_example_annotations=["disease"],
                        example_annotations=["age", "week"],
                        feature_annotations=["antigen"],
                        palette={"week": {"0": "#BE9764"}, "antigen": {"GAD": "cornflowerblue", "INSB": "firebrick"},
@@ -65,6 +65,7 @@ class TestFeatureHeatmap(TestCase):
                        example_names_size=1,
                        text_size=9,
                        height=6,
-                       width=6).generate()
+                       width=6,
+                       heatmap_color="cividis").generate()
 
         shutil.rmtree(path)

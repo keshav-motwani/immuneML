@@ -1,7 +1,6 @@
 import copy
 import json
 
-import numpy as np
 import pandas as pd
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.packages import STAP
@@ -79,25 +78,26 @@ class FeatureHeatmap(EncodingReport):
     def build_object(cls, **kwargs):
         return FeatureHeatmap(**kwargs)
 
-    def __init__(self, dataset: RepertoireDataset = None, feature_annotations: list = [], example_annotations: list = [],
-                 one_hot_encode_feature_annotations: list = [], one_hot_encode_example_annotations: list = [], palette: dict = {},
-                 cluster_features: bool = True, cluster_examples: bool = True, subset_nonzero_features: bool = False,
-                 show_feature_dend: bool = True, show_example_dend: bool = True, show_feature_names: bool = False,
-                 show_example_names: bool = False, show_legend_features: list = None, show_legend_examples: list = None,
+    def __init__(self, dataset: RepertoireDataset = None, feature_annotations: list = [],
+                 example_annotations: list = [], one_hot_feature_annotations: list = [],
+                 one_hot_example_annotations: list = [], palette: dict = {},
+                 cluster_features: bool = True, cluster_examples: bool = True, show_feature_dend: bool = True,
+                 show_example_dend: bool = True, show_feature_names: bool = False, show_example_names: bool = False,
+                 show_legend_features: list = None, show_legend_examples: list = None,
                  legend_position: str = "side", text_size: float = 10, feature_names_size: float = 7, example_names_size: float = 7,
-                 scale_features: bool = True, height: float = 10, width: float = 10, result_name: str = "feature_heatmap",
+                 feature_standardization: str = "NULL", heatmap_color: str = "BWR", height: float = 10,
+                 width: float = 10, result_name: str = "feature_heatmap",
                  result_path: str = None):
 
         super().__init__()
         self.dataset = dataset
-        self.feature_annotations = list(set(feature_annotations) - set(one_hot_encode_feature_annotations))
-        self.example_annotations = list(set(example_annotations) - set(one_hot_encode_example_annotations))
-        self.one_hot_encode_feature_annotations = one_hot_encode_feature_annotations
-        self.one_hot_encode_example_annotations = one_hot_encode_example_annotations
+        self.feature_annotations = feature_annotations
+        self.example_annotations = example_annotations
+        self.one_hot_feature_annotations = one_hot_feature_annotations
+        self.one_hot_example_annotations = one_hot_example_annotations
         self.palette = palette
         self.cluster_features = cluster_features
         self.cluster_examples = cluster_examples
-        self.subset_nonzero_features = subset_nonzero_features
         self.show_feature_dend = show_feature_dend
         self.show_example_dend = show_example_dend
         self.show_feature_names = show_feature_names
@@ -108,7 +108,8 @@ class FeatureHeatmap(EncodingReport):
         self.text_size = text_size
         self.feature_names_size = feature_names_size
         self.example_names_size = example_names_size
-        self.scale_features = scale_features
+        self.feature_standardization = feature_standardization
+        self.heatmap_color = heatmap_color
         self.height = height
         self.width = width
         self.result_name = result_name
@@ -131,6 +132,10 @@ class FeatureHeatmap(EncodingReport):
                                                         FeatureHeatmap.FEATURE)
         example_annotations = self._prepare_annotations(pd.DataFrame(self.dataset.encoded_data.labels),
                                                         FeatureHeatmap.EXAMPLE)
+        one_hot_feature_annotations = self._prepare_one_hot_annotations(self.dataset.encoded_data.feature_annotations,
+                                                                        FeatureHeatmap.FEATURE)
+        one_hot_example_annotations = self._prepare_one_hot_annotations(pd.DataFrame(self.dataset.encoded_data.labels),
+                                                                        FeatureHeatmap.EXAMPLE)
 
         with open(EnvironmentSettings.root_path + "source/visualization/Heatmap.R") as f:
             string = f.read()
@@ -140,6 +145,8 @@ class FeatureHeatmap(EncodingReport):
         plot.plot_heatmap(matrix=matrix,
                           row_annotations=feature_annotations,
                           column_annotations=example_annotations,
+                          one_hot_row_annotations=one_hot_feature_annotations,
+                          one_hot_column_annotations=one_hot_example_annotations,
                           palette=json.dumps(self.palette),
                           row_names=self.dataset.encoded_data.feature_names,
                           column_names=self.dataset.encoded_data.example_ids,
@@ -155,7 +162,8 @@ class FeatureHeatmap(EncodingReport):
                           text_size=self.text_size,
                           row_names_size=self.feature_names_size,
                           column_names_size=self.example_names_size,
-                          scale_rows=self.scale_features,
+                          row_standardization=self.feature_standardization,
+                          heatmap_color=self.heatmap_color,
                           height=self.height,
                           width=self.width,
                           result_path=self.result_path,
@@ -163,21 +171,10 @@ class FeatureHeatmap(EncodingReport):
 
     def _prepare_matrix(self):
         matrix = self.dataset.encoded_data.examples.A.T
-        if self.subset_nonzero_features:
-            nonzero = np.sum(matrix, axis=1) > 0
-            matrix = matrix[nonzero]
-            self.dataset.encoded_data.feature_annotations = self.dataset.encoded_data.feature_annotations[nonzero]
-            self.dataset.encoded_data.feature_names = [self.dataset.encoded_data.feature_names[i] for i in range(nonzero.shape[0]) if nonzero[i]]
         return matrix
 
     def _prepare_annotations(self, data, type):
-        for col in getattr(self, "one_hot_encode_" + type + "_annotations"):
-            data = self._one_hot_encode_column(data, col, type)
         return data[getattr(self, type + "_annotations")]
 
-    def _one_hot_encode_column(self, data, column_name, type):
-        one_hot = pd.get_dummies(data[column_name], dtype=np.float64)
-        data = data.drop(column_name, axis=1)
-        data = data.join(one_hot)
-        getattr(self, type + "_annotations").extend(one_hot.columns)
-        return data
+    def _prepare_one_hot_annotations(self, data, type):
+        return data[getattr(self, "one_hot_" + type + "_annotations")]
