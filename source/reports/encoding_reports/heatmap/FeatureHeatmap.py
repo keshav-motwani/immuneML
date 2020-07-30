@@ -85,7 +85,8 @@ class FeatureHeatmap(EncodingReport):
                  show_example_dend: bool = True, show_feature_names: bool = False, show_example_names: bool = False,
                  show_legend_features: list = None, show_legend_examples: list = None,
                  legend_position: str = "side", text_size: float = 10, feature_names_size: float = 7, example_names_size: float = 7,
-                 feature_standardization: str = "NULL", heatmap_color: str = "BWR", height: float = 10,
+                 feature_standardization: str = "NULL", lower_quantile: float = 0.01, upper_quantile: float = 0.99,
+                 heatmap_color: str = "BWR", color_by_quantile=True, height: float = 10,
                  width: float = 10, result_name: str = "feature_heatmap",
                  result_path: str = None):
 
@@ -109,7 +110,10 @@ class FeatureHeatmap(EncodingReport):
         self.feature_names_size = feature_names_size
         self.example_names_size = example_names_size
         self.feature_standardization = feature_standardization
+        self.lower_quantile = lower_quantile
+        self.upper_quantile = upper_quantile
         self.heatmap_color = heatmap_color
+        self.color_by_quantile = color_by_quantile
         self.height = height
         self.width = width
         self.result_name = result_name
@@ -163,7 +167,10 @@ class FeatureHeatmap(EncodingReport):
                           row_names_size=self.feature_names_size,
                           column_names_size=self.example_names_size,
                           row_standardization=self.feature_standardization,
+                          lower_quantile=self.lower_quantile,
+                          upper_quantile=self.upper_quantile,
                           heatmap_color=self.heatmap_color,
+                          color_by_quantile=self.color_by_quantile,
                           height=self.height,
                           width=self.width,
                           result_path=self.result_path,

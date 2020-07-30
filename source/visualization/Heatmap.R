@@ -28,6 +28,7 @@ plot_heatmap = function(matrix,
                         title = character(0),
                         row_standardization = "scale",
                         heatmap_color = "BWR",
+                        color_by_quantile = TRUE,
                         height = 10,
                         width = 10,
                         result_name = "test_heatmap",
@@ -105,7 +106,8 @@ plot_heatmap = function(matrix,
     column_names_size = column_names_size,
     value_name = value_name,
     title = title,
-    heatmap_color = heatmap_color
+    heatmap_color = heatmap_color,
+    color_by_quantile = color_by_quantile
   )
 
   png(
