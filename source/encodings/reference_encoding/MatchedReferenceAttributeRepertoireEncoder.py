@@ -106,13 +106,13 @@ class MatchedReferenceAttributeRepertoireEncoder(MatchedReferenceAttributeEncode
             value = len(matched_repertoire[attribute])
 
         elif self.summary == SequenceMatchingSummaryType.PCT_UNIQUE_READS_WITH_MATCH:
-            value = len(matched_repertoire[attribute]) / unique_reads
+            value = 100 * len(matched_repertoire[attribute]) / unique_reads
 
         elif self.summary == SequenceMatchingSummaryType.TOTAL_READS_WITH_MATCH:
             value = sum([metadata["count"] for metadata in matched_repertoire[attribute]])
 
         else:
-            value = sum([metadata["count"] for metadata in matched_repertoire[attribute]]) / total_reads
+            value = 100 * sum([metadata["count"] for metadata in matched_repertoire[attribute]]) / total_reads
 
         return value
 

@@ -75,9 +75,9 @@ class QuerySequenceMatcher:
                                    for hashed_query in hashed_query_list]
 
         matched.total_reads_with_match = QuerySequenceMatcher.compute_total_reads_with_match(matched_query_sequences)
-        matched.pct_total_reads_with_match = matched.total_reads_with_match / total_reads
+        matched.pct_total_reads_with_match = 100 * matched.total_reads_with_match / total_reads
         matched.unique_reads_with_match = QuerySequenceMatcher.compute_unique_reads_with_match(matched_query_sequences)
-        matched.pct_unique_reads_with_match = matched.unique_reads_with_match / unique_reads
+        matched.pct_unique_reads_with_match = 100 * matched.unique_reads_with_match / unique_reads
 
         if return_sequence_info:
             matched.query_sequences = matched_query_sequences

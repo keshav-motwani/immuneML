@@ -49,8 +49,8 @@ class TestMatchedReferenceSequenceEncoder(TestCase):
 
         self.assertEqual((2, 3), encoded.encoded_data.examples.shape)
         self.assertTrue(isinstance(encoder, MatchedReferenceSequenceEncoder))
-        self.assertTrue(encoded.encoded_data.examples[0, 0] == 1)
-        self.assertTrue(encoded.encoded_data.examples[1, 0] == 0.5)
+        self.assertTrue(encoded.encoded_data.examples[0, 0] == 100)
+        self.assertTrue(encoded.encoded_data.examples[1, 0] == 50)
         self.assertTrue(encoded.encoded_data.labels["default"] == [1, 2])
         self.assertTrue(encoded.encoded_data.feature_names == ["AAAA", "BBBB", "CCCC"])
         self.assertTrue(isinstance(encoded.encoded_data.feature_annotations, pd.DataFrame))

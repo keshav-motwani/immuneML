@@ -61,6 +61,6 @@ class TestQuerySequenceMatcher(TestCase):
 
         self.assertEqual(3, len([r for r in result.query_sequences if len(r.matching_reference_sequences) > 0])) # number of sequences in repertoire with at least one match
         self.assertTrue(result.metadata["CD"])
-        self.assertEqual(0.8, result.pct_total_reads_with_match)
+        self.assertEqual(80, result.pct_total_reads_with_match)
 
         shutil.rmtree(path)
