@@ -73,12 +73,18 @@ plot_heatmap = function(matrix,
     matrix = matrix[indices, ]
     row_annotations = row_annotations[indices, , drop = FALSE]
     one_hot_row_annotations = one_hot_row_annotations[indices, , drop = FALSE]
+    lower_quantile = quantile(matrix, lower_quantile, na.rm = TRUE)
+    upper_quantile = quantile(matrix, upper_quantile, na.rm = TRUE)
     matrix = t(apply(
       t(matrix),
       MARGIN = 2,
       FUN = function(X)
-        (X - min(X)) / diff(range(X))
+        (X - lower_quantile) / (upper_quantile - lower_quantile)
     ))
+    matrix[matrix > 1] = 1
+    matrix[matrix < 0] = 0
+    lower_quantile = 0
+    upper_quantile = 1
   }
 
   heatmap = ggexp::plot_heatmap(
