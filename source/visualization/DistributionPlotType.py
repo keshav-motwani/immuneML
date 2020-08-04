@@ -9,3 +9,4 @@ class DistributionPlotType(Enum):
     SINA = 3
     DENSITY = 4
     RIDGE = 5
+    QUASIRANDOM = 6

@@ -69,7 +69,12 @@ plot_heatmap = function(matrix,
   if (row_standardization == "scale") {
     matrix = t(scale(t(matrix)))
   } else if (row_standardization == "min_max") {
-    indices = rowSums(matrix) > 0
+    indices = apply(
+      t(matrix),
+      MARGIN = 2,
+      FUN = function(X)
+        is.finite(quantile(X, upper_quantile, na.rm = TRUE) - quantile(X, lower_quantile, na.rm = TRUE)
+    ))
     matrix = matrix[indices, ]
     row_annotations = row_annotations[indices, , drop = FALSE]
     one_hot_row_annotations = one_hot_row_annotations[indices, , drop = FALSE]
