@@ -142,7 +142,7 @@ class FeatureHeatmap(EncodingReport):
         one_hot_example_annotations = self._prepare_one_hot_annotations(pd.DataFrame(self.dataset.encoded_data.labels),
                                                                         FeatureHeatmap.EXAMPLE)
 
-        self._save_results(matrix, feature_annotations, example_annotations, one_hot_feature_annotations, one_hot_example_annotations)
+        self._save_results(matrix)
 
         with open(EnvironmentSettings.root_path + "source/visualization/Heatmap.R") as f:
             string = f.read()
