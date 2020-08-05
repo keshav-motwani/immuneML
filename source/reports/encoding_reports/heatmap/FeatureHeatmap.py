@@ -2,6 +2,7 @@ import copy
 import json
 
 import pandas as pd
+import numpy as np
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.packages import STAP
 
@@ -141,6 +142,8 @@ class FeatureHeatmap(EncodingReport):
         one_hot_example_annotations = self._prepare_one_hot_annotations(pd.DataFrame(self.dataset.encoded_data.labels),
                                                                         FeatureHeatmap.EXAMPLE)
 
+        self._save_results(matrix, feature_annotations, example_annotations, one_hot_feature_annotations, one_hot_example_annotations)
+
         with open(EnvironmentSettings.root_path + "source/visualization/Heatmap.R") as f:
             string = f.read()
 
@@ -185,3 +188,13 @@ class FeatureHeatmap(EncodingReport):
 
     def _prepare_one_hot_annotations(self, data, type):
         return data[getattr(self, "one_hot_" + type + "_annotations")]
+
+    def _save_results(self, matrix, feature_annotations, example_annotations, one_hot_feature_annotations, one_hot_example_annotations):
+
+        np.savetxt(self.result_path + "/" + self.result_name + "_matrix.csv", matrix, delimiter=",")
+
+        feature_annotations = pd.concat([feature_annotations, one_hot_feature_annotations], axis=1)
+        feature_annotations.to_csv(self.result_path + "/" + self.result_name + "_feature_annotations.csv")
+
+        example_annotations = pd.concat([example_annotations, one_hot_example_annotations], axis=1)
+        example_annotations.to_csv(self.result_path + "/" + self.result_name + "_example_annotations.csv")
