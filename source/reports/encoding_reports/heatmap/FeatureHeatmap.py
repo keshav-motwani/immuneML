@@ -189,12 +189,10 @@ class FeatureHeatmap(EncodingReport):
     def _prepare_one_hot_annotations(self, data, type):
         return data[getattr(self, "one_hot_" + type + "_annotations")]
 
-    def _save_results(self, matrix, feature_annotations, example_annotations, one_hot_feature_annotations, one_hot_example_annotations):
+    def _save_results(self, matrix):
 
         np.savetxt(self.result_path + "/" + self.result_name + "_matrix.csv", matrix, delimiter=",")
 
-        feature_annotations = pd.concat([feature_annotations, one_hot_feature_annotations], axis=1)
-        feature_annotations.to_csv(self.result_path + "/" + self.result_name + "_feature_annotations.csv")
+        self.dataset.encoded_data.feature_annotations.to_csv(self.result_path + "/" + self.result_name + "_feature_annotations.csv")
 
-        example_annotations = pd.concat([example_annotations, one_hot_example_annotations], axis=1)
-        example_annotations.to_csv(self.result_path + "/" + self.result_name + "_example_annotations.csv")
+        pd.DataFrame(self.dataset.encoded_data.labels).to_csv(self.result_path + "/" + self.result_name + "_example_annotations.csv")

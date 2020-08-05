@@ -53,6 +53,7 @@ class MatchedReferenceSequenceRepertoireEncoder(MatchedReferenceSequenceEncoder)
             feature_annotations.append(feature_annotation)
 
         feature_annotations = pd.DataFrame(feature_annotations)
+        feature_annotations["feature"] = features
 
         arguments = [(params, index, repertoire) for index, repertoire in enumerate(dataset.repertoires)]
 
