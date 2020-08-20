@@ -126,6 +126,7 @@ class KmerFrequencyEncoder(DatasetEncoder):
             "sequence_encoding": SequenceEncodingType[sequence_encoding.upper()],
             "name": name,
             "include_sequence": include_sequence,
+            "metadata_fields_to_include": metadata_fields_to_include,
             **vars_to_check
         }
 
