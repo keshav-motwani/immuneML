@@ -108,7 +108,7 @@ class KmerFrequencyEncoder(DatasetEncoder):
 
     @staticmethod
     def _prepare_parameters(normalization_type: str, reads: str, sequence_encoding: str, k: int = 0, k_left: int = 0,
-                          k_right: int = 0, min_gap: int = 0, max_gap: int = 0, metadata_fields_to_include: list = None, name: str = None):
+                          k_right: int = 0, min_gap: int = 0, max_gap: int = 0, metadata_fields_to_include: list = None, include_sequence: bool = True, name: str = None):
 
         location = KmerFrequencyEncoder.__name__
 
@@ -125,6 +125,7 @@ class KmerFrequencyEncoder(DatasetEncoder):
             "reads": ReadsType[reads.upper()],
             "sequence_encoding": SequenceEncodingType[sequence_encoding.upper()],
             "name": name,
+            "include_sequence": include_sequence,
             **vars_to_check
         }
 
