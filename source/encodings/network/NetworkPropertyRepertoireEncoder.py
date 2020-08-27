@@ -72,6 +72,7 @@ class NetworkPropertyRepertoireEncoder(NetworkPropertyEncoder):
         for label_name in label_config.get_labels_by_name():
             label = repertoire.metadata[label_name]
             labels[label_name] = label
+        labels["n_vertex"] = graph.vcount()
 
         b = time.time()
 

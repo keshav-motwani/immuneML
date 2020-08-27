@@ -73,8 +73,8 @@ plot_heatmap = function(matrix,
       t(matrix),
       MARGIN = 2,
       FUN = function(X)
-        is.finite(quantile(X, upper_quantile, na.rm = TRUE) - quantile(X, lower_quantile, na.rm = TRUE)
-    ))
+        quantile(X, upper_quantile, na.rm = TRUE) - quantile(X, lower_quantile, na.rm = TRUE) > 0
+    )
     matrix = matrix[indices, ]
     row_annotations = row_annotations[indices, , drop = FALSE]
     one_hot_row_annotations = one_hot_row_annotations[indices, , drop = FALSE]

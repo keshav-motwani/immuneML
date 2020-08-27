@@ -27,11 +27,11 @@ class TestNetworkGlobalPropertyEncoder(TestCase):
         PathBuilder.build(path)
 
         rep1 = Repertoire.build_from_sequence_objects(
-            sequence_objects=[ReceptorSequence(x, metadata=SequenceMetadata(count=10)) for x in self.generate_random_sequences(100, 4, 20)],
+            sequence_objects=[ReceptorSequence(x, metadata=SequenceMetadata(count=10)) for x in ["AAA", "AAC", "DDD"]],
             metadata={"l1": "test_1", "l2": 2}, path=path)
 
         rep2 = Repertoire.build_from_sequence_objects(
-            sequence_objects=[ReceptorSequence(x, metadata=SequenceMetadata(count=10)) for x in self.generate_random_sequences(100, 4, 20)],
+            sequence_objects=[ReceptorSequence(x, metadata=SequenceMetadata(count=10)) for x in ["AAD", "AAC", "CAA"]],
             metadata={"l1": "test_2", "l2": 3}, path=path)
 
         lc = LabelConfiguration()
