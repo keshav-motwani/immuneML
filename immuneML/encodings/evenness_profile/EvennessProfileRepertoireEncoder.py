@@ -57,11 +57,11 @@ class EvennessProfileRepertoireEncoder(EvennessProfileEncoder):
 
         alphas = np.linspace(start=params.model["min_alpha"], stop=params.model["max_alpha"], num=params.model["dimension"])
 
-        counts = [sequence.metadata.count for sequence in repertoire.sequences if sequence.metadata.frame_type == SequenceFrameType.IN]
-        freqs = np.array(counts)
-        freqs = freqs[np.nonzero(freqs)]
+        frame_types = repertoire.get_attribute("frame_types")
+        counts = repertoire.get_attribute("counts").astype(int)
+        counts = counts[frame_types == SequenceFrameType.IN]
 
-        evenness_profile = np.array([np.exp(EntropyCalculator.renyi_entropy(freqs, alpha))/len(freqs) for alpha in alphas])
+        evenness_profile = np.array([np.exp(EntropyCalculator.renyi_entropy(counts, alpha))/len(counts) for alpha in alphas])
 
         if params.encode_labels:
             label_config = params.label_config
