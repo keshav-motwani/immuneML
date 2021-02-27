@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
+from immuneML.analysis.data_manipulation.DataReshaper import DataReshaper
 from immuneML.data_model.dataset.Dataset import Dataset
 from immuneML.reports.ReportOutput import ReportOutput
 from immuneML.reports.ReportResult import ReportResult
@@ -60,8 +61,9 @@ class DesignMatrixExporter(EncodingReport):
         matrix_result = self._export_matrix()
         details_result = self._export_details()
         label_result = self._export_labels()
+        features_result = self._export_features()
 
-        return ReportResult(self.name, output_tables=[matrix_result, label_result], output_text=[details_result])
+        return ReportResult(self.name, output_tables=[matrix_result, label_result, features_result], output_text=[details_result])
 
     def _export_matrix(self) -> ReportOutput:
         """Create a file for the design matrix in the desired format."""
@@ -79,6 +81,10 @@ class DesignMatrixExporter(EncodingReport):
         elif len(data.shape) <= 2 and ext == "csv": 
             np.savetxt(fname=str(file_path), X=data, delimiter=",", comments='',
                        header=",".join(self.dataset.encoded_data.feature_names))
+        elif ext == "long_csv":
+            long = DataReshaper.reshape(self.dataset)
+            file_path = self.result_path / "long_design_matrix.csv"
+            long.to_csv(file_path, index=False)
         else:
             if ext != "npy":
                 logging.info('The selected Report format is not compatible, '
@@ -122,6 +128,13 @@ class DesignMatrixExporter(EncodingReport):
             file_path = self.result_path / "labels.csv"
             labels_df.to_csv(file_path, sep=",", index=False)
             return ReportOutput(file_path, "exported labels")
+
+    def _export_features(self) -> ReportOutput:
+        if self.dataset.encoded_data.feature_annotations is not None:
+            features_df = self.dataset.encoded_data.feature_annotations
+            file_path = self.result_path / "features.csv"
+            features_df.to_csv(file_path, sep=",", index=False)
+            return ReportOutput(file_path, "exported features")
 
     def check_prerequisites(self):
         if self.dataset.encoded_data is None or self.dataset.encoded_data.examples is None:

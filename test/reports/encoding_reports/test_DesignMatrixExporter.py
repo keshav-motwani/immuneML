@@ -55,14 +55,16 @@ class TestDesignMatrixExporter(TestCase):
                                                              labels={"l1": [1, 0, 1], "l2": [0, 0, 1]},
                                                              example_ids=[0, 1, 2],
                                                              feature_names=["f1", "f2", "f3", "f4"],
+                                                             feature_annotations=pd.DataFrame({"feature": ["f1", "f2", "f3", "f4"],
+                                                                                               "test": [1, 2, 3, 4]}),
                                                              encoding="test_encoding"))
 
         path = EnvironmentSettings.tmp_test_path / "designmatrrixexporterreport/"
 
         report = DesignMatrixExporter(dataset=dataset, result_path=path,
-                                      name="design_matrix", file_format='csv')
+                                      name="design_matrix", file_format='long_csv')
         report.generate_report()
-        self.assertTrue(os.path.isfile(path / "design_matrix.csv"))
+        self.assertTrue(os.path.isfile(path / "long_design_matrix.csv"))
         report.file_format = 'csv.zip'
         report._export_matrix()
         self.assertTrue(os.path.isfile(path / "design_matrix.csv.zip"))
