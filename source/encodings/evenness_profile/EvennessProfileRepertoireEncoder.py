@@ -38,11 +38,11 @@ class EvennessProfileRepertoireEncoder(EvennessProfileEncoder):
             chunksize = math.floor(dataset.get_example_count()/params["batch_size"]) + 1
             repertoires = pool.starmap(self.get_encoded_repertoire, arguments, chunksize=chunksize)
 
-        encoded_repertoire_list, repertoire_names, labels = zip(*repertoires)
+        encoded_repertoire_list, repertoire_names, alphas, labels = zip(*repertoires)
 
         encoded_labels = {k: [dic[k] for dic in labels] for k in labels[0]}
 
-        return list(encoded_repertoire_list), list(repertoire_names), encoded_labels
+        return list(encoded_repertoire_list), list(repertoire_names), alphas[0], encoded_labels
 
     def get_encoded_repertoire(self, repertoire, params: EncoderParams):
 
@@ -58,11 +58,11 @@ class EvennessProfileRepertoireEncoder(EvennessProfileEncoder):
 
         alphas = np.linspace(start=params["model"]["min_alpha"], stop=params["model"]["max_alpha"], num=params["model"]["dimension"])
 
-        counts = [sequence.metadata.count for sequence in repertoire.sequences if sequence.metadata.frame_type.upper() == "IN"]
-        freqs = np.array(counts)
-        freqs = freqs[np.nonzero(freqs)]
+        frame_types = np.char.upper(repertoire.get_attribute("frame_types").astype(str))
+        counts = repertoire.get_attribute("counts").astype(int)
+        counts = counts[frame_types == "IN"]
 
-        evenness_profile = np.array([np.exp(EntropyCalculator.renyi_entropy(freqs, alpha))/len(freqs) for alpha in alphas])
+        evenness_profile = np.array([np.exp(EntropyCalculator.renyi_entropy(counts, alpha))/len(counts) for alpha in alphas])
 
         label_config = params["label_configuration"]
         labels = dict()
@@ -70,4 +70,4 @@ class EvennessProfileRepertoireEncoder(EvennessProfileEncoder):
             label = repertoire.metadata[label_name]
             labels[label_name] = label
 
-        return evenness_profile, repertoire.identifier, labels
+        return evenness_profile, repertoire.identifier, alphas, labels

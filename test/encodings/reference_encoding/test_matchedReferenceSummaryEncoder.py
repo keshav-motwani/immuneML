@@ -52,6 +52,8 @@ class TestMatchedReferenceSummaryRepertoireEncoder(TestCase):
         self.assertTrue(isinstance(encoder, MatchedReferenceSummaryEncoder))
         self.assertTrue(encoded.encoded_data.examples[0, 0] == 100)
         self.assertTrue(encoded.encoded_data.examples[1, 0] == 50)
+        self.assertTrue(encoded.encoded_data.examples[0, 1] == 2)
+        self.assertTrue(encoded.encoded_data.examples[1, 1] == 1)
         self.assertTrue(encoded.encoded_data.labels["default"] == [1, 2])
         self.assertTrue(encoded.encoded_data.feature_names == ["pct_unique_reads_with_match", "total_reads_with_match"])
 

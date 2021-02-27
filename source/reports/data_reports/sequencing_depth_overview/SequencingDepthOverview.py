@@ -67,9 +67,10 @@ class SequencingDepthOverview(DataReport):
 
     def generate(self) -> ReportResult:
         data = self.generate_data()
+        PathBuilder.build(self.result_path)
+        data.to_csv(f"{self.result_path}{self.result_name}.csv")
         report_output_fig = self._safe_plot(data=data, output_written=False)
         output_figures = [report_output_fig] if report_output_fig is not None else []
-
         return ReportResult(self.name, output_figures=output_figures)
 
     def generate_data(self):
@@ -95,8 +96,6 @@ class SequencingDepthOverview(DataReport):
             string = f.read()
 
         plot = STAP(string, "plot")
-
-        PathBuilder.build(self.result_path)
 
         plot.plot_sequencing_depth_overview(data=data[[self.x, "value", "frame_type", "feature", "id"] + self.facets],
                                             x=self.x,

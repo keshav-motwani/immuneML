@@ -39,7 +39,7 @@ class TestFeatureHeatmap(TestCase):
             'labels': {
                 "patient": np.array([i for i in range(100) for _ in range(5)]),
                 "week": np.array([0] * 100 + [1] * 100 + [2] * 100 + [3] * 100 + [4] * 100),
-                "disease": np.array((["T1D"] * 125 + ["CONTROL"] * 125 + ["SLE"] * 125 + ["RA"] * 125)),
+                "disease": np.array((["T1D"] * 500)),
                 "age": np.random.normal(50, 10, 500),
             },
             'feature_names': sequences,

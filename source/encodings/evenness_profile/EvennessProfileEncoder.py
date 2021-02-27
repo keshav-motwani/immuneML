@@ -102,7 +102,7 @@ class EvennessProfileEncoder(DatasetEncoder):
 
     def _encode_data(self, dataset, params: EncoderParams) -> EncodedData:
 
-        encoded_example_list, example_ids, encoded_labels = CacheHandler.memo_by_params(
+        encoded_example_list, example_ids, alphas, encoded_labels = CacheHandler.memo_by_params(
             self._prepare_caching_params(dataset, params, EvennessProfileEncoder.STEP_ENCODED),
             lambda: self._encode_examples(dataset, params))
 
@@ -112,7 +112,7 @@ class EvennessProfileEncoder(DatasetEncoder):
 
         feature_names = list(range(self.dimension))
 
-        feature_annotations = pd.DataFrame({"feature": feature_names})
+        feature_annotations = pd.DataFrame({"feature": feature_names, "alpha": alphas})
 
         encoded_data = EncodedData(examples=vectorized_examples,
                                    labels=encoded_labels,

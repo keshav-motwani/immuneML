@@ -243,7 +243,6 @@ class Repertoire(DatasetItem):
             value_dict = row[key]
             if value_dict:
                 implants.append(ImplantAnnotation(*value_dict))
-
         seq = ReceptorSequence(amino_acid_sequence=row["sequence_aas"] if "sequence_aas" in fields else None,
                                nucleotide_sequence=row["sequences"] if "sequences" in fields else None,
                                identifier=row["sequence_identifiers"] if "sequence_identifiers" in fields else None,
